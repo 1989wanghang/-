@@ -7,6 +7,7 @@ import plotly.offline as py
 
 fps = 120
 
+
 def ReadFile(fichier_html_graphs, file_path):
     f = open(file_path, 'r')
     x_values = []
@@ -38,6 +39,8 @@ def ReadFile(fichier_html_graphs, file_path):
         last_value = values[0]
 
     min_gap = min(y_values)
+    if min_gap < 0:
+        print("min gap is a broken value {0}, fix this".format(min_gap))
     max_gap = max(y_values)
     gap_strs = []
     gaps = []
@@ -45,13 +48,13 @@ def ReadFile(fichier_html_graphs, file_path):
     ratios = []
 
     t = int((max_gap - min_gap) * fps / 1000) + 2
-    gap = min_gap
+    t_index = int(min_gap * fps / 1000)
     for i in range(t):
-        down = int(gap * fps / 1000)
-        up = down + 1
-        gap = up * 1000 / fps
-        gap_strs.append('(' + str(down * 1000 / fps) + ',' + str(gap) + ']')
-        gaps.append([(down * 1000 / fps), gap])
+        down = t_index * 1000 / fps
+        up = (t_index + 1) * 1000 / fps
+        t_index += 1
+        gap_strs.append('(' + str(down) + ',' + str(up) + ']')
+        gaps.append([down, up])
         times.append(0)
     v_index = 0
     for v in y_values:
@@ -103,7 +106,8 @@ def ReadFile(fichier_html_graphs, file_path):
         x_values[max_gap_idx] * 1000 + first_value))
     print("平均帧率: ", len(y_values) * 1000 / (max(x_values) - min(x_values)))
     for i in range(len(times)):
-        print("{0}: {1}次，{2}% ".format(gap_strs[i], times[i], ratios[i]))
+        if times[i] > 0:
+            print("{0}: {1}次，{2}% ".format(gap_strs[i], times[i], ratios[i]))
 
     trace1 = go.Bar(x=gap_strs, y=times, name='次数')
     trace2 = go.Scatter(x=gap_strs, y=ratios, name='占比(%)', yaxis='y2')

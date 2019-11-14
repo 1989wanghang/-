@@ -7,6 +7,7 @@ import plotly.offline as py
 
 fps = 120
 
+
 def ReadFile(fichier_html_graphs, file_path):
     f = open(file_path, 'r')
     total_values = []
@@ -27,12 +28,16 @@ def ReadFile(fichier_html_graphs, file_path):
         if element_num < 2:
             print("need two timestamp")
             return None, None
+        diff = values[1] - values[0]
+        if diff < 0:
+            print("ignore broken value: [{0} - {1}]".format(
+                values[1], values[0]))
+            continue
         if first_value == -1:
             first_value = values[0]
             print("first_value = ", first_value)
         total_values.append(values)
         x_values.append((values[0] - first_value) / 1000)
-        diff = values[1] - values[0]
         total_duration += diff
         y_values.append(diff / 1000)
         colors.append(0)
@@ -46,13 +51,13 @@ def ReadFile(fichier_html_graphs, file_path):
     ratios = []
 
     t = int((max_gap - min_gap) * fps / 1000) + 2
-    gap = min_gap
+    t_index = int(min_gap * fps / 1000)
     for i in range(t):
-        down = int(gap * fps / 1000)
-        up = down + 1
-        gap = up * 1000 / fps
-        gap_strs.append('(' + str(down * 1000 / fps) + ',' + str(gap) + ']')
-        gaps.append([(down * 1000 / fps), gap])
+        down = t_index * 1000 / fps
+        up = (t_index + 1) * 1000 / fps
+        t_index += 1
+        gap_strs.append('(' + str(down) + ',' + str(up) + ']')
+        gaps.append([down, up])
         times.append(0)
     v_index = 0
     for v in y_values:
@@ -96,11 +101,13 @@ def ReadFile(fichier_html_graphs, file_path):
     max_gap_idx = y_values.index(max_gap)
     print("最大耗时(idx+1={0}): {1}，发生在[{2}({3}) - {4}({5})]".format(
         max_gap_idx + 1, max_gap, total_values[max_gap_idx][0] - first_value,
-        total_values[max_gap_idx][0], total_values[max_gap_idx][1] - first_value,
+        total_values[max_gap_idx][0],
+        total_values[max_gap_idx][1] - first_value,
         total_values[max_gap_idx][1]))
     print("平均帧率: ", len(y_values) * 1000000 / total_duration)
     for i in range(len(times)):
-        print("{0}: {1}次，{2}% ".format(gap_strs[i], times[i], ratios[i]))
+        if times[i] > 0:
+            print("{0}: {1}次，{2}% ".format(gap_strs[i], times[i], ratios[i]))
 
     trace1 = go.Bar(x=gap_strs, y=times, name='次数')
     trace2 = go.Scatter(x=gap_strs, y=ratios, name='占比(%)', yaxis='y2')
