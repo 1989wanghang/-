@@ -23,7 +23,7 @@ def ReadFile(fichier_html_graphs, file_path):
         strs = line.split()
         values = list(map(int, strs))
         element_num = len(values)
-        if element_num != 2:
+        if element_num < 1:
             return None, None
         if first_value == -1:
             first_value = values[0]
@@ -44,7 +44,7 @@ def ReadFile(fichier_html_graphs, file_path):
     times = []
     ratios = []
 
-    t = int((max_gap - min_gap) * fps / 1000) + 1
+    t = int((max_gap - min_gap) * fps / 1000) + 2
     gap = min_gap
     for i in range(t):
         down = int(gap * fps / 1000)
@@ -97,7 +97,7 @@ def ReadFile(fichier_html_graphs, file_path):
         timestamp_when_max_gap = 0
     else:
         timestamp_when_max_gap = x_values[max_gap_idx - 1] * 1000
-    print("最大间隔值(idx+1={0}): {1}，发生在[{2}(+{3}) - {4}(+{5})]".format(
+    print("最大间隔值(idx+1={0}): {1}，发生在[{2}({3}) - {4}({5})]".format(
         max_gap_idx + 1, max_gap, timestamp_when_max_gap,
         timestamp_when_max_gap + first_value, x_values[max_gap_idx] * 1000,
         x_values[max_gap_idx] * 1000 + first_value))
@@ -125,7 +125,7 @@ def main():
     print('处理前后次间隔:', str(sys.argv[1]))
     filepath = sys.argv[1]
     trace_name = filepath.split('/')[-1].split('.')[0]
-    fichier_html_graphs = open(trace_name + "diff_last_time.html", 'w')
+    fichier_html_graphs = open(trace_name + "_diff_last_time.html", 'w')
     fichier_html_graphs.write("<html><head></head><body>" + "\n")
 
     x_values, y_values = ReadFile(fichier_html_graphs, filepath)
