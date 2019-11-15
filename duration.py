@@ -7,6 +7,11 @@ import plotly.offline as py
 
 fps = 120
 
+total_log = ''
+
+def sprintf(str_value):
+    global total_log
+    total_log += str_value + '\n'
 
 def ReadFile(fichier_html_graphs, file_path):
     f = open(file_path, 'r')
@@ -30,12 +35,12 @@ def ReadFile(fichier_html_graphs, file_path):
             return None, None
         diff = values[1] - values[0]
         if diff < 0:
-            print("ignore broken value: [{0} - {1}]".format(
+            sprintf("ignore broken value: [{0} - {1}]".format(
                 values[1], values[0]))
             continue
         if first_value == -1:
             first_value = values[0]
-            print("first_value = ", first_value)
+            sprintf("first_value = {0}".format(first_value))
         total_values.append(values)
         x_values.append((values[0] - first_value) / 1000)
         total_duration += diff
@@ -56,7 +61,7 @@ def ReadFile(fichier_html_graphs, file_path):
         down = t_index * 1000 / fps
         up = (t_index + 1) * 1000 / fps
         t_index += 1
-        gap_strs.append('(' + str(down) + ',' + str(up) + ']')
+        gap_strs.append('(' + format(down, "0.2f") + ',' + format(up, "0.2f") + ']')
         gaps.append([down, up])
         times.append(0)
     v_index = 0
@@ -72,7 +77,7 @@ def ReadFile(fichier_html_graphs, file_path):
                     sizes[v_index] = k * (k**0.5) + 2
         v_index += 1
     for tt in times:
-        ratios.append(int(tt * 100 / len(y_values)))
+        ratios.append(tt * 100 / len(y_values))
 
     traces = []
     trace_name = file_path.split('/')[-1].split('.')[0]
@@ -97,17 +102,17 @@ def ReadFile(fichier_html_graphs, file_path):
                               "\" width=\"1600\" height=\"480\"></object>" +
                               "\n")
 
-    print("最小耗时: ", min_gap)
+    sprintf("最小耗时: {0}".format(min_gap))
     max_gap_idx = y_values.index(max_gap)
-    print("最大耗时(idx+1={0}): {1}，发生在[{2}({3}) - {4}({5})]".format(
+    sprintf("最大耗时(idx+1={0}): {1}，发生在[{2}({3}) - {4}({5})]".format(
         max_gap_idx + 1, max_gap, total_values[max_gap_idx][0] - first_value,
         total_values[max_gap_idx][0],
         total_values[max_gap_idx][1] - first_value,
         total_values[max_gap_idx][1]))
-    print("平均帧率: ", len(y_values) * 1000000 / total_duration)
+    sprintf("平均帧率: {0}".format(len(y_values) * 1000000 / total_duration))
     for i in range(len(times)):
         if times[i] > 0:
-            print("{0}: {1}次，{2}% ".format(gap_strs[i], times[i], ratios[i]))
+            sprintf("{0}: {1}次，{2}% ".format(gap_strs[i], times[i], format(ratios[i], "0.2f")))
 
     trace1 = go.Bar(x=gap_strs, y=times, name='次数')
     trace2 = go.Scatter(x=gap_strs, y=ratios, name='占比(%)', yaxis='y2')
@@ -122,6 +127,15 @@ def ReadFile(fichier_html_graphs, file_path):
                               "\" width=\"650\" height=\"480\"></object>" +
                               "\n")
 
+    textlog = open(trace_name + "_print_log.html", 'w')
+    textlog.write("<html><head></head><body><style>textarea{border-style:none;font-size:16px;width:100%;height:100%;}</style><textarea readonly>\n")
+    textlog.write(total_log)
+    textlog.write("</textarea></body></html>")
+    textlog.close()
+    fichier_html_graphs.write(" <object data=\"" + trace_name +
+                              '_print_log.html' +
+                              "\" width=\"800\" height=\"480\"></object>" +
+                              "\n")
     return x_values, y_values
 
 
@@ -135,7 +149,7 @@ def main():
     x_values, y_values = ReadFile(fichier_html_graphs, filepath)
 
     fichier_html_graphs.write("</body></html>")
-
+    fichier_html_graphs.close()
 
 if __name__ == "__main__":
     main()
