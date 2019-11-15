@@ -9,9 +9,11 @@ fps = 120
 
 total_log = ''
 
+
 def sprintf(str_value):
     global total_log
     total_log += str_value + '\n'
+
 
 def ReadFile(fichier_html_graphs, file_path):
     f = open(file_path, 'r')
@@ -58,7 +60,8 @@ def ReadFile(fichier_html_graphs, file_path):
         down = t_index * 1000 / fps
         up = (t_index + 1) * 1000 / fps
         t_index += 1
-        gap_strs.append('(' + format(down, "0.2f") + ',' + format(up, "0.2f") + ']')
+        gap_strs.append('(' + format(down, "0.2f") + ',' + format(up, "0.2f") +
+                        ']')
         gaps.append([down, up])
         times.append(0)
     v_index = 0
@@ -109,10 +112,12 @@ def ReadFile(fichier_html_graphs, file_path):
         max_gap_idx + 1, max_gap, timestamp_when_max_gap,
         timestamp_when_max_gap + first_value, x_values[max_gap_idx] * 1000,
         x_values[max_gap_idx] * 1000 + first_value))
-    sprintf("平均帧率: {0}".format(len(y_values) * 1000 / (max(x_values) - min(x_values))))
+    sprintf("平均帧率: {0}".format(
+        len(y_values) * 1000 / (max(x_values) - min(x_values))))
     for i in range(len(times)):
         if times[i] > 0:
-            sprintf("{0}: {1}次，{2}% ".format(gap_strs[i], times[i], format(ratios[i], "0.2f")))
+            sprintf("{0}: {1}次，{2}% ".format(gap_strs[i], times[i],
+                                             format(ratios[i], "0.2f")))
 
     trace1 = go.Bar(x=gap_strs, y=times, name='次数')
     trace2 = go.Scatter(x=gap_strs, y=ratios, name='占比(%)', yaxis='y2')
@@ -128,7 +133,9 @@ def ReadFile(fichier_html_graphs, file_path):
                               "\n")
 
     textlog = open(trace_name + "_print_log.html", 'w')
-    textlog.write("<html><head></head><body><style>textarea{border-style:none;font-size:16px;width:100%;height:100%;}</style><textarea readonly>\n")
+    textlog.write(
+        "<html><head></head><body><style>textarea{border-style:none;font-size:16px;width:100%;height:100%;}</style><textarea readonly>\n"
+    )
     textlog.write(total_log)
     textlog.write("</textarea></body></html>")
     textlog.close()
@@ -151,6 +158,7 @@ def main():
 
     fichier_html_graphs.write("</body></html>")
     fichier_html_graphs.close()
+
 
 if __name__ == "__main__":
     main()
