@@ -18,6 +18,7 @@ def sprintf(str_value):
 def ReadFile(fichier_html_graphs, file_path):
     f = open(file_path, 'r')
     x_values = []
+    x_show_values = []
     y_values = []
     colors = []
     sizes = []
@@ -39,7 +40,8 @@ def ReadFile(fichier_html_graphs, file_path):
         if last_value == -1:
             last_value = values[0]
             continue
-        x_values.append((values[0] - first_value) / 1000)
+        x_values.append(values[0] / 1000)
+        x_show_values.append("D{0}".format(values[0]))
         y_values.append((values[0] - last_value) / 1000)
         colors.append(0)
         sizes.append(3)
@@ -83,7 +85,7 @@ def ReadFile(fichier_html_graphs, file_path):
     trace_name = file_path.split('/')[-1].split('.')[0]
     traces.append(
         go.Scatter(
-            x=x_values,
+            x=x_show_values,
             y=y_values,
             mode='lines+markers',
             marker=dict(
@@ -93,7 +95,7 @@ def ReadFile(fichier_html_graphs, file_path):
                 showscale=True),
             name=trace_name))
     layout = go.Layout(title=(trace_name + ' 前后次间隔'),
-                       xaxis=dict(title='当前时间戳(ms)'),
+                       xaxis=dict(title='当前时间戳(D us)'),
                        yaxis=dict(title='前后次间隔时长(ms)'))
     fig = go.Figure(data=traces, layout=layout)
     py.plot(fig, filename=trace_name + '_diff_last0.html', auto_open=False)
@@ -108,10 +110,9 @@ def ReadFile(fichier_html_graphs, file_path):
         timestamp_when_max_gap = 0
     else:
         timestamp_when_max_gap = x_values[max_gap_idx - 1] * 1000
-    sprintf("最大间隔值(idx+1={0}): {1}，发生在[{2}({3}) - {4}({5})]".format(
+    sprintf("最大间隔值(idx+1={0}): {1}，发生在[{2} - {3}]".format(
         max_gap_idx + 1, max_gap, timestamp_when_max_gap,
-        timestamp_when_max_gap + first_value, x_values[max_gap_idx] * 1000,
-        x_values[max_gap_idx] * 1000 + first_value))
+        x_values[max_gap_idx] * 1000))
     sprintf("平均帧率: {0}".format(
         len(y_values) * 1000 / (max(x_values) - min(x_values))))
     for i in range(len(times)):
@@ -132,7 +133,7 @@ def ReadFile(fichier_html_graphs, file_path):
                               "\" width=\"650\" height=\"480\"></object>" +
                               "\n")
 
-    textlog = open(trace_name + "_print_log.html", 'w')
+    textlog = open(trace_name + "_diff_last_print_log.html", 'w')
     textlog.write(
         "<html><head></head><body><style>textarea{border-style:none;font-size:16px;width:100%;height:100%;}</style><textarea readonly>\n"
     )
@@ -140,7 +141,7 @@ def ReadFile(fichier_html_graphs, file_path):
     textlog.write("</textarea></body></html>")
     textlog.close()
     fichier_html_graphs.write(" <object data=\"" + trace_name +
-                              '_print_log.html' +
+                              '_diff_last_print_log.html' +
                               "\" width=\"800\" height=\"480\"></object>" +
                               "\n")
 

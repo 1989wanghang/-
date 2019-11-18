@@ -19,6 +19,7 @@ def ReadFile(fichier_html_graphs, file_path):
     f = open(file_path, 'r')
     total_values = []
     x_values = []
+    x_show_values = []
     y_values = []
     colors = []
     sizes = []
@@ -44,7 +45,8 @@ def ReadFile(fichier_html_graphs, file_path):
             first_value = values[0]
             sprintf("first_value = {0}".format(first_value))
         total_values.append(values)
-        x_values.append((values[0] - first_value) / 1000)
+        x_values.append(values[0] / 1000)
+        x_show_values.append("D{0}".format(values[0]))
         total_duration += diff
         y_values.append(diff / 1000)
         colors.append(0)
@@ -86,7 +88,7 @@ def ReadFile(fichier_html_graphs, file_path):
     trace_name = file_path.split('/')[-1].split('.')[0]
     traces.append(
         go.Scatter(
-            x=x_values,
+            x=x_show_values,
             y=y_values,
             mode='lines+markers',
             marker=dict(
@@ -96,7 +98,7 @@ def ReadFile(fichier_html_graphs, file_path):
                 showscale=True),
             name=trace_name))
     layout = go.Layout(title=(trace_name + ' 耗时'),
-                       xaxis=dict(title='当前时间戳(ms)'),
+                       xaxis=dict(title='当前时间戳(D us)'),
                        yaxis=dict(title='耗时时长(ms)'))
     fig = go.Figure(data=traces, layout=layout)
     py.plot(fig, filename=trace_name + '_duration0.html', auto_open=False)
@@ -107,10 +109,8 @@ def ReadFile(fichier_html_graphs, file_path):
 
     sprintf("最小耗时: {0}".format(min_gap))
     max_gap_idx = y_values.index(max_gap)
-    sprintf("最大耗时(idx+1={0}): {1}，发生在[{2}({3}) - {4}({5})]".format(
-        max_gap_idx + 1, max_gap, total_values[max_gap_idx][0] - first_value,
-        total_values[max_gap_idx][0],
-        total_values[max_gap_idx][1] - first_value,
+    sprintf("最大耗时(idx+1={0}): {1}，发生在[{2} - {3}]".format(
+        max_gap_idx + 1, max_gap, total_values[max_gap_idx][0],
         total_values[max_gap_idx][1]))
     sprintf("平均帧率: {0}".format(len(y_values) * 1000000 / total_duration))
     for i in range(len(times)):
@@ -131,7 +131,7 @@ def ReadFile(fichier_html_graphs, file_path):
                               "\" width=\"650\" height=\"480\"></object>" +
                               "\n")
 
-    textlog = open(trace_name + "_print_log.html", 'w')
+    textlog = open(trace_name + "_duration_print_log.html", 'w')
     textlog.write(
         "<html><head></head><body><style>textarea{border-style:none;font-size:16px;width:100%;height:100%;}</style><textarea readonly>\n"
     )
@@ -139,7 +139,7 @@ def ReadFile(fichier_html_graphs, file_path):
     textlog.write("</textarea></body></html>")
     textlog.close()
     fichier_html_graphs.write(" <object data=\"" + trace_name +
-                              '_print_log.html' +
+                              '_duration_print_log.html' +
                               "\" width=\"800\" height=\"480\"></object>" +
                               "\n")
     return x_values, y_values
